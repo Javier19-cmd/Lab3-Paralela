@@ -1,65 +1,46 @@
-/* File:     vector_add.c
- *
- * Purpose:  Implement vector addition
- *
- * Compile:  gcc -g -Wall -o vector_add vector_add.c
- * Run:      ./vector_add
- *
- * Input:    The order of the vectors, n, and the vectors x and y
- * Output:   The sum vector z = x+y
- *
- * Note:
- *    If the program detects an error (order of vector <= 0 or malloc
- * failure), it prints a message and terminates
- *
- * IPP:      Section 3.4.6 (p. 109)
- */
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-void Read_n(int* n_p);
 void Allocate_vectors(double** x_pp, double** y_pp, double** z_pp, int n);
-void Read_vector(double a[], int n, char vec_name[]);
-void Print_vector(double b[], int n, char title[]);
+void Generate_random_vector(double a[], int n);
+void Print_first_last_elements(double b[], int n, char vec_name[]);
 void Vector_sum(double x[], double y[], double z[], int n);
 
 /*---------------------------------------------------------------------*/
 int main(void) {
-   int n;
-   double *x, *y, *z;
+    int n = 100000; // Tamaño de los vectores
+    double *x, *y, *z;
+    clock_t start_time, end_time; // Variables para medir el tiempo
 
-   Read_n(&n);
-   Allocate_vectors(&x, &y, &z, n);
-   
-   Read_vector(x, n, "x");
-   Read_vector(y, n, "y");
-   
-   Vector_sum(x, y, z, n);
+    Allocate_vectors(&x, &y, &z, n);
 
-   Print_vector(z, n, "The sum is");
+    Generate_random_vector(x, n);
+    Generate_random_vector(y, n);
 
-   free(x);
-   free(y);
-   free(z);
+    printf("Vector x:\n");
+    Print_first_last_elements(x, n, "x");
 
-   return 0;
-}  /* main */
+    printf("Vector y:\n");
+    Print_first_last_elements(y, n, "y");
 
-/*---------------------------------------------------------------------
- * Function:  Read_n
- * Purpose:   Get the order of the vectors from stdin
- * Out arg:   n_p:  the order of the vectors
- *
- * Errors:    If n <= 0, the program terminates
- */
-void Read_n(int* n_p /* out */) {
-   printf("What's the order of the vectors?\n");
-   scanf("%d", n_p);
-   if (*n_p <= 0) {
-      fprintf(stderr, "Order should be positive\n");
-      exit(-1);
-   }
-}  /* Read_n */
+    start_time = clock(); // Inicio de la medición de tiempo
+    Vector_sum(x, y, z, n);
+    end_time = clock(); // Fin de la medición de tiempo
+
+    double total_time = (double)(end_time - start_time) / CLOCKS_PER_SEC; // Tiempo total en segundos
+
+    printf("The sum (vector z):\n");
+    Print_first_last_elements(z, n, "z");
+
+    printf("Tiempo de ejecución: %.6f segundos\n", total_time); // Imprimir el tiempo de ejecución
+
+    free(x);
+    free(y);
+    free(z);
+
+    return 0;
+}
 
 /*---------------------------------------------------------------------
  * Function:  Allocate_vectors
@@ -84,39 +65,44 @@ void Allocate_vectors(
 }  /* Allocate_vectors */
 
 /*---------------------------------------------------------------------
- * Function:  Read_vector
- * Purpose:   Read a vector from stdin
+ * Function:  Generate_random_vector
+ * Purpose:   Generate random values for a vector
  * In args:   n:  order of the vector
- *            vec_name:  name of vector (e.g., x)
- * Out arg:   a:  the vector to be read in
+ * Out arg:   a:  the vector with random values
  */
-void Read_vector(
-      double  a[]         /* out */, 
-      int     n           /* in  */, 
-      char    vec_name[]  /* in  */) {
+void Generate_random_vector(
+      double  a[]  /* out */, 
+      int     n    /* in  */) {
    int i;
-   printf("Enter the vector %s\n", vec_name);
-   for (i = 0; i < n; i++)
-      scanf("%lf", &a[i]);
-}  /* Read_vector */  
+
+   srand(time(NULL)); // Seed the random number generator
+   for (i = 0; i < n; i++) {
+      a[i] = ((double)rand() / RAND_MAX) * 100.0; // Generate random values between 0 and 100
+   }
+}  /* Generate_random_vector */
 
 /*---------------------------------------------------------------------
- * Function:  Print_vector
- * Purpose:   Print the contents of a vector
+ * Function:  Print_first_last_elements
+ * Purpose:   Print the first and last 10 elements of a vector
  * In args:   b:  the vector to be printed
  *            n:  the order of the vector
- *            title:  title for print out
+ *            vec_name:  name of the vector
  */
-void Print_vector(
-      double  b[]     /* in */, 
-      int     n       /* in */, 
-      char    title[] /* in */) {
+void Print_first_last_elements(
+      double  b[]        /* in */, 
+      int     n          /* in */, 
+      char    vec_name[] /* in */) {
    int i;
-   printf("%s\n", title);
-   for (i = 0; i < n; i++)
+   printf("%s (First and Last 10 elements):\n", vec_name);
+   for (i = 0; i < 10; i++) {
       printf("%f ", b[i]);
+   }
+   printf("... ");
+   for (i = n - 10; i < n; i++) {
+      printf("%f ", b[i]);
+   }
    printf("\n");
-}  /* Print_vector */
+}  /* Print_first_last_elements */
 
 /*---------------------------------------------------------------------
  * Function:  Vector_sum
